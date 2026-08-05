@@ -1,49 +1,47 @@
-from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
-
-from app.models.user import UserRole
+from typing import Optional
+from pydantic import BaseModel, EmailStr
 
 
 class UserBase(BaseModel):
-    full_name: str
+    """Base schema containing shared user attributes."""
+    username: str
     email: EmailStr
-    role: UserRole = UserRole.CREATOR
-    bio: Optional[str] = None
 
 
 class UserCreate(UserBase):
+    """Schema for creating/registering a new user."""
     password: str
 
 
+# Alias for backward compatibility if code uses UserRegister
+UserRegister = UserCreate
+
+
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
+    """Schema for updating user details (all fields optional)."""
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
-    role: Optional[UserRole] = None
-    bio: Optional[str] = None
-    is_active: Optional[bool] = None
+    password: Optional[str] = None
 
 
 class UserResponse(UserBase):
-    id: int
-    is_active: bool
-    is_deleted: bool
-    created_at: datetime
+    """Schema for returning user data (excludes sensitive info)."""
+    
+    class Config:
+        from_attributes = True  # Supports ORM models (FastAPI v2 / Pydantic v2)
 
-    model_config = ConfigDict(from_attributes=True)
+
+class UserInDB(UserBase):
+    """Internal schema representing user in database with hashed password."""
+    hashed_password: str
 
 
 class Token(BaseModel):
+    """Schema for JWT token response."""
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
-
-
-class UserListResponse(BaseModel):
-    total: int
-    users: List[UserResponse]
-
-    model_config = ConfigDict(from_attributes=True)
+    """Schema for data stored within JWT token."""
+    username: Optional[str] = None
