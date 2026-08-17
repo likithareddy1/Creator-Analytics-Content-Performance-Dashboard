@@ -1,0 +1,58 @@
+from fastapi import FastAPI
+
+from app.db.database import engine, Base
+
+# Models
+from app.models.user import User
+from app.models.content import Content
+from app.models.audience import Audience
+from app.models.growth import Growth
+
+# Routers
+from app.routers.users import router as user_router
+from app.routers.auth import router as auth_router
+from app.routers.content import router as content_router
+from app.routers.analytics import router as analytics_router
+from app.routers.audience import router as audience_router
+
+
+# ============================================================
+# CREATE DATABASE TABLES
+# ============================================================
+
+Base.metadata.create_all(bind=engine)
+
+
+# ============================================================
+# FASTAPI APPLICATION
+# ============================================================
+
+app = FastAPI(
+    title="Creator Analytics & Content Performance Dashboard"
+)
+
+
+# ============================================================
+# ROUTERS
+# ============================================================
+
+app.include_router(user_router)
+
+app.include_router(auth_router)
+
+app.include_router(content_router)
+
+app.include_router(analytics_router)
+
+app.include_router(audience_router)
+
+
+# ============================================================
+# ROOT
+# ============================================================
+
+@app.get("/")
+def home():
+    return {
+        "message": "CreatorIQ API is running"
+    }
